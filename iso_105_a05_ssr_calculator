@@ -2,14 +2,7 @@ import numpy as np
 import math
 
 def calculate_iso_105_a05_ssr(Lab_roi1, Lab_roi2):
-    """
-    Calculates the continuous Standard Specimen Rating (SSR) for color change 
-    according to ISO 105-A05.
     
-    Lab_roi1: [L*, a*, b*] of the Initial Fabric (Reference)
-    Lab_roi2: [L*, a*, b*] of the Altered Fabric (Specimen)
-    Returns: SSR value (float)
-    """
     L_1, a_1, b_1 = Lab_roi1
     L_2, a_2, b_2 = Lab_roi2   
     
