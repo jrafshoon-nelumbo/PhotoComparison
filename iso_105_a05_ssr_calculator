@@ -1,0 +1,80 @@
+import numpy as np
+import math
+
+def calculate_iso_105_a05_ssr(sample_A, sample_B):
+    """
+    Calculates the continuous Standard Specimen Rating (SSR) for color change 
+    according to ISO 105-A05.
+    
+    sample_A: [L*, a*, b*] of the Initial Fabric (Reference)
+    sample_B: [L*, a*, b*] of the Altered Fabric (Specimen)
+    """
+    L_A, a_A, b_A = sample_A
+    L_B, a_B, b_B = sample_B
+    
+    #Calculate Chroma (C) and Hue angle (h) in degrees
+    C_A = math.sqrt(a_A**2 + b_A**2)
+    C_B = math.sqrt(a_B**2 + b_B**2)
+    
+    h_A = math.degrees(math.atan2(b_A, a_A)) % 360
+    h_B = math.degrees(math.atan2(b_B, a_B)) % 360
+    
+    #Standard CIELAB differences
+    dL = L_B - L_A
+    dC = C_B - C_A
+    da = a_B - a_A
+    db = b_B - b_A
+    
+    #Calculate standard delta H
+    #(Using the standard dH = sqrt(dE^2 - dL^2 - dC^2) ensuring no domain math errors)
+    dE_ab_sq = dL**2 + da**2 + db**2
+    dH_sq = dE_ab_sq - dL**2 - dC**2
+    dH = math.sqrt(max(0, dH_sq)) # max(0) prevents precision issue negative roots
+    #Assign sign to dH
+    if (a_A * b_B - a_B * b_A) < 0:
+        dH = -dH
+        
+    # 3. Mean Chroma and Mean Hue Angle
+    C_M = (C_A + C_B) / 2.0
+    
+    # Handle mean hue wrap-around at 360 degrees
+    if abs(h_B - h_A) <= 180:
+        h_M = (h_B + h_A) / 2.0
+    else:
+        if (h_B + h_A) < 360:
+            h_M = (h_B + h_A) / 2.0 + 180
+        else:
+            h_M = (h_B + h_A) / 2.0 - 180
+            
+    # 4. Calculate damping factor D
+    h_diff = abs(h_M - 280)
+    if h_diff <= 180:
+        x = (h_diff / 30.0)**2
+    else:
+        x = ((360 - h_diff) / 30.0)**2
+        
+    D = (dC * C_M * math.exp(-x)) / 100.0
+    
+    # 5. Calculate modified Chroma (dC_K) and Hue (dH_K)
+    dC_K = dC - D
+    dH_K = dH - D
+    
+    # 6. Calculate finalized CF and HF components
+    dC_F = dC_K / (1.0 + (20.0 * C_M / 1000.0)**2)
+    dH_F = dH_K / (1.0 + (10.0 * C_M / 1000.0)**2)
+    
+    # 7. Calculate modified color difference (dE_F)
+    dE_F = math.sqrt(dL**2 + dC_F**2 + dH_F**2)
+    
+    # 8. Convert to Standard Specimen Rating (SSR)
+    if dE_F <= 3.4:
+        ssr = 5.0 - (dE_F / 1.7)
+    else:
+        ssr = 5.0 - (math.log10(dE_F / 0.85) / math.log10(2.0))
+        
+    # Standard dictates ratings are capped between 1 and 5
+    return max(1.0, min(5.0, ssr))
+
+
+grade = calculate_iso_105_a05_ssr(mean_lab_A, mean_lab_B)
+# print(f"ISO 105-A05 Rating (SSR): {grade:.2f}")

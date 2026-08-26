@@ -1,0 +1,22 @@
+def aatcc_score_color(delta_e):
+    if 0.0 <= delta_e < 0.2:
+        return "Color change grade is 5"
+    elif 0.2 <= delta_e < 1.0:
+        return "Color change grade is  4-5"
+    elif 1.0 <= delta_e < 2.0:
+        return "Color change grade is 4"
+    elif 2.0 <= delta_e < 2.7:
+        return "Color change grade is 3-4"
+    elif 2.7 <= delta_e < 3.8:
+        return "Color change grade is 3"
+    elif 3.8 <= delta_e < 5.3:
+        return "Color change grade is 2-3"
+    elif 5.3 <= delta_e < 7.4:
+        return "Color change grade is 2"
+    elif 7.4 <= delta_e < 10.3:
+        return "Color change grade is 1-2"  
+    elif 10.3 <= delta_e < 14.6:
+        return "Color change grade is 1"
+    else:
+        return "Ahhhhhhh spooky too much color change! Grade is 0"
+    
