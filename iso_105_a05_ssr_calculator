@@ -1,29 +1,30 @@
 import numpy as np
 import math
 
-def calculate_iso_105_a05_ssr(sample_A, sample_B):
+def calculate_iso_105_a05_ssr(Lab_roi1, Lab_roi2):
     """
     Calculates the continuous Standard Specimen Rating (SSR) for color change 
     according to ISO 105-A05.
     
-    sample_A: [L*, a*, b*] of the Initial Fabric (Reference)
-    sample_B: [L*, a*, b*] of the Altered Fabric (Specimen)
+    Lab_roi1: [L*, a*, b*] of the Initial Fabric (Reference)
+    Lab_roi2: [L*, a*, b*] of the Altered Fabric (Specimen)
+    Returns: SSR value (float)
     """
-    L_A, a_A, b_A = sample_A
-    L_B, a_B, b_B = sample_B
+    L_1, a_1, b_1 = Lab_roi1
+    L_2, a_2, b_2 = Lab_roi2   
     
     #Calculate Chroma (C) and Hue angle (h) in degrees
-    C_A = math.sqrt(a_A**2 + b_A**2)
-    C_B = math.sqrt(a_B**2 + b_B**2)
+    C_1 = math.sqrt(a_1**2 + b_1**2)
+    C_2 = math.sqrt(a_2**2 + b_2**2)
     
-    h_A = math.degrees(math.atan2(b_A, a_A)) % 360
-    h_B = math.degrees(math.atan2(b_B, a_B)) % 360
+    h_1 = math.degrees(math.atan2(b_1, a_1)) % 360
+    h_2 = math.degrees(math.atan2(b_2, a_2)) % 360
     
     #Standard CIELAB differences
-    dL = L_B - L_A
-    dC = C_B - C_A
-    da = a_B - a_A
-    db = b_B - b_A
+    dL = L_2 - L_1          
+    dC = C_2 - C_1
+    da = a_2 - a_1
+    db = b_2 - b_1
     
     #Calculate standard delta H
     #(Using the standard dH = sqrt(dE^2 - dL^2 - dC^2) ensuring no domain math errors)
@@ -31,20 +32,20 @@ def calculate_iso_105_a05_ssr(sample_A, sample_B):
     dH_sq = dE_ab_sq - dL**2 - dC**2
     dH = math.sqrt(max(0, dH_sq)) # max(0) prevents precision issue negative roots
     #Assign sign to dH
-    if (a_A * b_B - a_B * b_A) < 0:
+    if (a_1 * b_2 - a_2 * b_1) < 0:
         dH = -dH
         
     # 3. Mean Chroma and Mean Hue Angle
-    C_M = (C_A + C_B) / 2.0
+    C_M = (C_1 + C_2) / 2.0
     
     # Handle mean hue wrap-around at 360 degrees
-    if abs(h_B - h_A) <= 180:
-        h_M = (h_B + h_A) / 2.0
+    if abs(h_2 - h_1) <= 180:
+        h_M = (h_2 + h_1) / 2.0
     else:
-        if (h_B + h_A) < 360:
-            h_M = (h_B + h_A) / 2.0 + 180
+        if (h_2 + h_1) < 360:
+            h_M = (h_2 + h_1) / 2.0 + 180
         else:
-            h_M = (h_B + h_A) / 2.0 - 180
+            h_M = (h_2 + h_1) / 2.0 - 180
             
     # 4. Calculate damping factor D
     h_diff = abs(h_M - 280)
@@ -76,5 +77,10 @@ def calculate_iso_105_a05_ssr(sample_A, sample_B):
     return max(1.0, min(5.0, ssr))
 
 
-grade = calculate_iso_105_a05_ssr(mean_lab_A, mean_lab_B)
-# print(f"ISO 105-A05 Rating (SSR): {grade:.2f}")
+if __name__ == "__main__":
+#test Lab values
+    mean_lab_A = [33.49205637, 18.21758719, 18.75735102]  # Reference fabric Lab values
+    mean_lab_B = [34.12387882, 18.98491883, 19.08586749]  # Specimen fabric Lab values
+    
+    grade = calculate_iso_105_a05_ssr(mean_lab_A, mean_lab_B)
+    print(f"ISO 105-A05 Rating (SSR): {grade:.2f}")

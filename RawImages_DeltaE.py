@@ -22,9 +22,14 @@ def raw_to_delta_e(raw_path1, raw_path2):
     with rawpy.imread(raw_path1) as raw1, rawpy.imread(raw_path2) as raw2:
         rgb_linear1 = raw1.postprocess(gamma=(1, 1), no_auto_bright=True, output_bps=16)
         rgb_linear2 = raw2.postprocess(gamma=(1, 1), no_auto_bright=True, output_bps=16)
-        
-        rgb_normalized1 = rgb_linear1 / 65535.0
+
+        # Normalize the RGB values to [0, 1] range for skimage color conversion
+        rgb_normalized1 = rgb_linear1 / 65535.0 
         rgb_normalized2 = rgb_linear2 / 65535.0
+
+        #Clip the values to [0, 1] range to avoid any potential issues with color conversion
+        rgb_normalized1 = np.clip(rgb_normalized1, 1e-10, 1)
+        rgb_normalized2 = np.clip(rgb_normalized2, 1e-10, 1)
         
         Lab_image1 = color.rgb2lab(rgb_normalized1)
         Lab_image2 = color.rgb2lab(rgb_normalized2)
@@ -34,7 +39,7 @@ def raw_to_delta_e(raw_path1, raw_path2):
         
         delta_e = np.linalg.norm(Lab_roi1 - Lab_roi2)
         
-    return delta_e
+    return delta_e, Lab_roi1, Lab_roi2
 
 def aatcc_score_color(delta_e):
     if 0.0 <= delta_e < 0.2:
@@ -57,10 +62,13 @@ def aatcc_score_color(delta_e):
         return "Color change grade is 1"
     else:
         return "Ahhhhhhh spooky too much color change! Grade is 0"
+
+    
 if __name__ == "__main__":
     raw_path1 = "BlueTS_Raw.dng"
     raw_path2 = "GrayTS_Raw.dng"
         
     delta_e_test = raw_to_delta_e(raw_path1, raw_path2)
-    print(f"Delta E value is: {delta_e_test:.1f}")  
-    print(aatcc_score_color(delta_e_test)) 
+    print(f"Delta E value is: {delta_e_test[0]:.1f}")  
+    print(aatcc_score_color(delta_e_test[0])) 
+    print(delta_e_test[0], delta_e_test[1], delta_e_test[2])    
