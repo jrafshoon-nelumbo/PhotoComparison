@@ -3,7 +3,7 @@ from skimage import color
 import rawpy
 import cv2
 from aatcc_gray_score import aatcc_gray_score as gray
-from iso_105_a05_ssr_calculator import calculate_iso_105_a05_ssr as iso
+from iso_105_a05_ssr import calculate_iso_105_a05_ssr as iso
 from aatcc_staining_score import aatcc_staining_score as stain
 
 
